@@ -1,0 +1,432 @@
+// ====== 設定 ======
+const DURATION_SEC = 10 * 60; // 10分
+
+// 問題データ（45問）
+// answer は 0..3 のインデックス
+const quizData = [
+  {
+    q: '【理念】教室方針として最も大切な一言は？',
+    c: ['平均点超えが最低ライン', '成績が低い生徒は対象外', '入塾前の成績に関わらず可能性を信じる', '志望校は偏差値で決定'],
+    answer: 2
+  },
+  {
+    q: '【目標】教室全体の目標に含まれないものは？',
+    c: ['全員成績アップ', '全員合格', '働きやすい職場づくり', '講師の売上最大化'],
+    answer: 3
+  },
+  {
+    q: '【日程変更】社内ルールで必ず守る対応期限は？',
+    c: ['3日以内', '2日以内', '1週間以内', '特に規定なし'],
+    answer: 1
+  },
+  {
+    q: '【Self Control】一番近い活動はどれ？',
+    c: ['出願書類の共同作成', '学習習慣化と自己管理の支援', '志望校選定の支援', '受験戦略の促し'],
+    answer: 1
+  },
+  {
+    q: '【授業目的】毎回意識すべき一番大事なことは？',
+    c: ['授業風景の撮影', '授業目的と成果を明確にする', '休憩時間', '教材選び'],
+    answer: 1
+  },
+  {
+    q: '【報告書】公開の締切は？',
+    c: ['当日20:00', '当日21:00', '当日21:50', '翌日9:00'],
+    answer: 2
+  },
+  {
+    q: '【報告書】最低文字数は？',
+    c: ['100文字', '120文字', '150文字', '170文字'],
+    answer: 3
+  },
+  {
+    q: '【2コマ連続】80分×2コマの報告書の正しい扱いは？',
+    c: [
+      '2コマ分を1件に合算して投稿する',
+      '1件は2コマ分の授業内容の詳細、もう1件はメモ程度で済ませる',
+      '各コマ1件ずつ、それぞれの到達度を記載する',
+      '必要そうなときだけ2件にする'
+    ],
+    answer: 1
+  },
+  {
+    q: '【欠席】前日20:59に欠席連絡。対応は？',
+    c: ['振替不可', '振替不可で別の時間に自習80分を設ける', '振替可', '代講で日程変更'],
+    answer: 2
+  },
+  {
+    q: '【欠席】当日開始70分前に病気で欠席連絡。対応は？',
+    c: ['振替可', '振替不可（欠席処理）', '代講に変更', '次月に繰越'],
+    answer: 1
+  },
+  {
+    q: '【欠席】当日100分前に私用で欠席連絡。対応は？',
+    c: ['振替可', '原則として振替不可（欠席処理）', '代講手配', '自動で別日に移動'],
+    answer: 1
+  },
+  {
+    q: '【学校行事】当日、朝に体育祭での欠席。原則は？',
+    c: ['振替可', '振替不可（欠席処理）', '講師裁量', '追加料金で振替'],
+    answer: 1
+  },
+  {
+    q: '【行事】当日、朝に法事での欠席。原則は？',
+    c: ['振替可', '振替不可（欠席処理）', '代講必須', '講師裁量'],
+    answer: 0
+  },
+  {
+    q: '【交通】電車遅延で当日直前欠席連絡。原則は？',
+    c: ['振替可', '原則振替不可（可能なら遅刻参加を促す）', '全額返金', '次月繰越'],
+    answer: 1
+  },
+  {
+    q: '【荒天】台風で当日60分前に欠席連絡。対応は？',
+    c: ['振替可', '振替不可（原則直前NG）', '全員休講', '振替提案'],
+    answer: 3
+  },
+  {
+    q: '【荒天】大雪予報で90分前に欠席相談。対応は？',
+    c: ['振替提案', '振替不可', '欠席処理', '自動休講'],
+    answer: 0
+  },
+  {
+    q: '【欠席報告】欠席時の指導報告書で必ず記すべきは？',
+    c: ['宿題内容', '今回は振替対象外である旨（該当時）', '次回の授業の予告', '記載なし'],
+    answer: 1
+  },
+  {
+    q: '【カレンダー登録確認】反映確認はどこで行う？',
+    c: ['生徒カレンダーフォームで確認', '講師カレンダー直編集', '口頭確認のみ', 'Comiru既読で代用'],
+    answer: 0
+  },
+  {
+    q: '【お知らせ】講師の公開権限は？',
+    c: ['講師が直接公開可', '講師は下書きまで。公開は上利へ報告', '全自動公開', '公開不可'],
+    answer: 1
+  },
+  {
+    q: '【面談】第一目的として正しいのは？',
+    c: ['交友関係の聴取', '学習状況・成績・方針の共有', '保護者様との関係', '次回授業からの教材確認'],
+    answer: 1
+  },
+  {
+    q: '【面談準備】誤りはどれ？',
+    c: ['成績資料の事前回収', '塾長または運営マネージャーがA4/1〜2枚の面談資料を作成', '面談資料を教科担当の講師が作成する', 'Notionで面談アポ取りのタスクを受けてから日程案内'],
+    answer: 2
+  },
+  {
+    q: '【当日欠席の原則】病気以外の当日欠席に関する正しい説明は？',
+    c: [
+      '必ず振替可',
+      '原則振替不可。ただ、当日90分前以降の欠席連絡はできれば振替を先生にお願いしたい。理由：先生の方が当日お休みしたいときに休みづらくなるため。',
+      '常に講師裁量',
+      '連絡タイミングは無関係で振替可'
+    ],
+    answer: 1
+  },
+  {
+    q: '【引継ぎ】含まれない項目は？',
+    c: ['基本の生徒情報（生徒の日程希望や性格）', '教科別課題と目標', '教材と進捗', '講師のシフト希望'],
+    answer: 3
+  },
+  {
+    q: '【引継ぎ】提出期限は？',
+    c: ['担当変更月の末日16:00', '末日23:59', '翌月1日12:00', '任意'],
+    answer: 0
+  },
+  {
+    q: '【給与】報告の締め日は？',
+    c: ['25日', '30日', '末日23:59', '翌月5日'],
+    answer: 2
+  },
+  {
+    q: '【体験授業】当日の到着推奨は？',
+    c: ['5分前', '10分前', '15分前', 'ちょうど'],
+    answer: 1
+  },
+  {
+    q: '【体験授業】必ず与えるべきものは？',
+    c: ['難問演習', 'Before→Afterの成功体験', '全単元解説', '英検申込書'],
+    answer: 1
+  },
+  {
+    q: '【体験授業】基本構成に含まれないのは？',
+    c: ['最初の面談', '授業', '最後の面談', '保護者アンケート採点'],
+    answer: 3
+  },
+  {
+    q: '【日程変更】やってはいけないことは？',
+    c: ['口頭や私用LINEのみで変更', '24時間前連絡', '理由明記', '早めに周知'],
+    answer: 0
+  },
+  {
+    q: '【変更手順】正しいのは？',
+    c: [
+      'カレンダー更新→保護者連絡→了承',
+      '生徒了承（任意）→保護者連絡→了承→カレンダー更新',
+      '生徒了承（任意）→保護者連絡→カレンダー更新',
+      '生徒了承（任意）→カレンダー更新→上利報告'
+    ],
+    answer: 1
+  },
+  {
+    q: '【北辰テストお申込み】誤った対応は？',
+    c: ['4,950円受領', '領収書発行と印鑑', '預かったお金を確認し、あいかに保管', '不足分は講師立替'],
+    answer: 3
+  },
+  {
+    q: '【オープン】最初にやることは？',
+    c: ['机を整える', '入室報告LINE', '生徒を出迎える', 'コピー用紙補充'],
+    answer: 1
+  },
+  {
+    q: '【クローズ】最後にやることは？',
+    c: ['看板を中へ→自転車チェーン→完了報告LINE', '窓開放→冷房強→消灯', '施錠のみ', '自転車チェーン→看板出す'],
+    answer: 0
+  },
+  {
+    q: '【成績管理】回収・共有すべき範囲は？',
+    c: ['担当科目のみ', '全科目', '英数のみ', '国立受験者のみ'],
+    answer: 1
+  },
+  {
+    q: '【管理費】正しい取り扱いは？',
+    c: ['人数×2,000円', '一律2,000円', 'コマ間も時給発生', '常時事務給'],
+    answer: 1
+  },
+  {
+    q: '【交通費】1日往復の上限は？',
+    c: ['300円', '400円', '500円', '無制限'],
+    answer: 1
+  },
+  {
+    q: '【講師体調不良】正しい初動は？',
+    c: ['自己判断で休む', '生徒にだけ連絡', '午前中までに上利と塾長へ連絡', '後日報告'],
+    answer: 2
+  },
+  {
+    q: '【授業中】スマホ対応として正しいのは？',
+    c: ['使用OK', '注意して机下にしまわせる', '没収', '退室命令'],
+    answer: 1
+  },
+  {
+    q: '【宿題量】大きく変えるときの正しい手順は？',
+    c: ['講師判断のみ', '生徒に丸投げ', '上利へ相談して調整', '一律倍増'],
+    answer: 2
+  },
+  {
+    q: '【終礼】授業後に"必ず行うこと"として誤っているのはどれ？',
+    c: [
+      '除菌シートで机を拭く',
+      '消しゴムのカスを捨てる',
+      '教材を元の位置に戻す',
+      '使用した教材を講師が自宅に持ち帰る'
+    ],
+    answer: 3
+  },
+  {
+    q: '【出勤直後】授業当日、教室に着いて最初にやることは？',
+    c: [
+      '入室報告LINEを送る',
+      '出勤の座席マグネットを貼る',
+      '換気と空調の確認をする',
+      '机の整頓・軽清掃をする'
+    ],
+    answer: 1
+  },
+  {
+    q: '【シフト確認】一次情報として最優先で確認すべき場所はどれ？',
+    c: [
+      '共有Googleカレンダー（講師カレンダー）',
+      'Notionの「生徒情報」ページ',
+      'Comiruの「生徒情報」画面',
+      '保護者との過去の口頭連絡メモ'
+    ],
+    answer: 1
+  },
+  {
+    q: '【遅刻対応】開始時刻になっても生徒が来ない。最適な初動は？',
+    c: [
+      'すぐに電話、またはComiruで連絡して状況確認する',
+      'そのまま10分以上待ってみる',
+      '講師の私用LINEで本人に連絡する',
+      '本日の授業は自動キャンセルして次回に回す'
+    ],
+    answer: 0
+  },
+  {
+    q: '【マニュアル確認】引継ぎ資料や面談資料など、普段やらない仕事を見返すときの確認方法として誤っているものは？',
+    c: [
+      'チャットボットに聞く',
+      'Notionから該当マニュアルを探す',
+      '先輩講師に確認する',
+      'Comiruを見る'
+    ],
+    answer: 3
+  },
+  {
+    q: '【コピー機】コピーできない用紙はどれ？',
+    c: ['A4', 'B4', 'A3', 'B5'],
+    answer: 3
+  },
+];
+
+// ====== DOM ======
+const startScreen = document.getElementById('start-screen');
+const startBtn = document.getElementById('startBtn');
+const quizScreen  = document.getElementById('quiz-screen');
+const timerEl = document.querySelector('.timer');
+const timebar = document.getElementById('timebar');
+const form = document.getElementById('quizForm');
+const questionsEl = document.getElementById('questions');
+const resultEl = document.getElementById('result');
+
+// ====== 生成 ======
+function renderQuestions() {
+  const frag = document.createDocumentFragment();
+  quizData.forEach((item, i) => {
+    const qWrap = document.createElement('div');
+    qWrap.className = 'q';
+    const h = document.createElement('h3');
+    h.textContent = `Q${i+1}. ${item.q}`;
+    qWrap.appendChild(h);
+    const fs = document.createElement('fieldset');
+    item.c.forEach((choice, idx) => {
+      const id = `q${i}_c${idx}`;
+      const label = document.createElement('label');
+      label.className = 'choice';
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = `q${i}`;
+      input.value = String(idx);
+      input.id = id;
+      const span = document.createElement('span');
+      span.textContent = `${String.fromCharCode(65+idx)}. ${choice}`;
+      label.htmlFor = id;
+      label.appendChild(input);
+      label.appendChild(span);
+      fs.appendChild(label);
+    });
+    qWrap.appendChild(fs);
+    frag.appendChild(qWrap);
+  });
+  questionsEl.appendChild(frag);
+}
+
+// ====== タイマー ======
+let remaining = DURATION_SEC;
+let timerId = null;
+
+function format(sec){
+  const m = String(Math.floor(sec/60)).padStart(2,'0');
+  const s = String(sec%60).padStart(2,'0');
+  return `${m}:${s}`;
+}
+
+function updateTimer(){
+  timerEl.textContent = `残り ${format(remaining)}`;
+  const ratio = Math.max(0, remaining) / DURATION_SEC;
+  timebar.style.transform = `scaleX(${ratio})`;
+}
+
+function startTimer(){
+  remaining = DURATION_SEC;
+  updateTimer();
+  timerId = setInterval(()=>{
+    remaining--;
+    updateTimer();
+    if(remaining <= 0){
+      clearInterval(timerId);
+      autoSubmit();
+    }
+  }, 1000);
+}
+
+function stopTimer(){
+  if(timerId) clearInterval(timerId);
+  timerId = null;
+}
+
+// ====== 採点 ======
+function grade(){
+  const answers = new Map();
+  quizData.forEach((_, i) => {
+    const selected = form.querySelector(`input[name="q${i}"]:checked`);
+    answers.set(i, selected ? Number(selected.value) : null);
+  });
+  let correct = 0; const wrongs = [];
+  quizData.forEach((q, i) => {
+    const a = answers.get(i);
+    if(a === q.answer) correct++; else wrongs.push({i, a});
+  });
+  return {correct, wrongs};
+}
+
+function showResult({correct, wrongs}){
+  const total = quizData.length;
+  const percent = Math.round((correct/total)*100);
+  const ok = `<span class="ok">${correct} / ${total}（${percent}%）</span>`;
+  const summary = `<h2 class="mb-16">結果：${ok}</h2>`;
+
+  let detail = '';
+  if(wrongs.length === 0){
+    detail = '<p class="mb-16">全問正解です。素晴らしい！</p>';
+  } else {
+    detail = '<div class="mb-16"><strong>間違えた問題の解説</strong></div>';
+    wrongs.forEach(({i, a}) => {
+      const q = quizData[i];
+      const your = (a==null)? '未選択' : `${String.fromCharCode(65+a)}. ${q.c[a]}`;
+      const ans = `${String.fromCharCode(65+q.answer)}. ${q.c[q.answer]}`;
+      detail += `
+        <div class="result wrong mb-16">
+          <div class="mb-8"><strong>Q${i+1}</strong>：${q.q}</div>
+          <div>あなたの回答：<span class="err">${your}</span></div>
+          <div>正解：<span class="ok">${ans}</span></div>
+        </div>
+      `;
+    });
+  }
+
+  resultEl.innerHTML = `
+    <div class="result mb-16">
+      ${summary}
+      <p class="muted">※このページでは個人情報を収集していません。結果はこの端末上でのみ表示されます。</p>
+    </div>
+    ${detail}
+    <div class="center">
+      <button class="btn" onclick="location.reload()">もう一度受験</button>
+    </div>
+  `;
+  resultEl.classList.remove('hidden');
+  form.classList.add('hidden');
+  document.querySelector('.bar').classList.add('hidden');
+  document.querySelector('.toolbar').classList.add('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function autoSubmit(){
+  if(!form.classList.contains('hidden')){
+    const res = grade();
+    stopTimer();
+    showResult(res);
+  }
+}
+
+// ====== Events ======
+startBtn.addEventListener('click', () => {
+  startScreen.classList.add('hidden');
+  quizScreen.classList.remove('hidden');
+  renderQuestions();
+  startTimer();
+  setTimeout(()=>{
+    const first = form.querySelector('input[type="radio"]');
+    if(first) first.focus();
+  }, 50);
+});
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const res = grade();
+  stopTimer();
+  showResult(res);
+});
